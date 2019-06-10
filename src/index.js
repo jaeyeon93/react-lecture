@@ -1,15 +1,48 @@
-import React from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
-import { createStore, applyMiddleware } from 'redux';
+import YTSearch from 'youtube-api-search';
+import SearchBar from './components/search_bar'
+import VideoList from './components/video_list'
+import VideoDetail from './components/video_detail'
 
-import App from './components/app';
-import reducers from './reducers';
+const API_KEY = 'AIzaSyB8QiEn5xI9DzX7db8csqlrpDf0RARJWRE'
 
-const createStoreWithMiddleware = applyMiddleware()(createStore);
+class App extends Component {
+    constructor(props) {
+        super(props);
 
-ReactDOM.render(
-  <Provider store={createStoreWithMiddleware(reducers)}>
-    <App />
-  </Provider>
-  , document.querySelector('.container'));
+        this.state = {
+            videos: [],
+            selectedVideo: null
+        };
+
+        this.videoSearch('surfboards');
+    }
+
+    videoSearch(term) { // term은 검색어를 의미한다.
+        YTSearch({key: API_KEY, term: term}, (videos) => {
+            this.setState({
+                videos: videos,
+                selectedVideo: videos[0]
+            }); // key, variable 이름이 같으면 동작을 한다.
+            //ES5 : this.setState({videos: videos})
+        });
+    }
+
+    render() {
+        return (
+        <div>
+            <SearchBar onSearchTermChange={term => this.videoSearch(term)} />
+            <VideoDetail video={this.state.selectedVideo} />
+            <VideoList
+                onVideoSelect={selectedVideo => this.setState({selectedVideo})}
+                videos={this.state.videos} />
+        </div>
+        );
+    }
+}
+
+// Take this component's generated HTML and put it on the page (in the DOM)
+ReactDOM.render(<App/>, document.querySelector('.container'));
+
+
